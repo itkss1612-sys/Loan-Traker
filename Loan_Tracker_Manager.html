@@ -2112,6 +2112,7 @@
         <button class="modal-close" onclick="closeModal('invoiceModal')"><i class="ri-close-line"></i></button>
       </div>
       <form class="modal-body" onsubmit="handleInvoiceSubmit(event)">
+        <input type="hidden" id="editInvId">
         <div class="form-grid">
           <div class="form-group" style="grid-column:span 2;">
             <label>Client *</label>
@@ -2143,19 +2144,30 @@
           </div>
         </div>
 
-        <!-- Calculated Summary -->
-        <div class="calc-box" style="margin-top:10px;">
-          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-            <span>Taxable Amount:</span>
-            <strong id="invTaxable">₹0</strong>
+        <!-- Manual Billing & GST Toggle -->
+        <div style="margin-top:10px; padding:10px 12px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <label style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; color:#334155; cursor:pointer; margin:0;">
+            <input type="checkbox" id="invApplyGST" checked onchange="handleGSTToggle()" style="width:16px; height:16px; accent-color:var(--brand-primary);">
+            <span>Apply 18% GST (CGST 9% + SGST 9%)</span>
+          </label>
+          <span style="font-size:11px; color:#64748b;">Turn off if creating Non-GST / Direct bill</span>
+        </div>
+
+        <!-- Editable Bill Summary Box -->
+        <div class="calc-box" style="margin-top:10px; background:#fffdf5; border:1px solid #fef3c7;">
+          <div class="form-grid" style="margin-bottom:8px;">
+            <div class="form-group" style="margin:0;">
+              <label style="font-size:11px; font-weight:700; color:#475569;">Taxable Amount (₹) (Auto / Editable)</label>
+              <input type="text" inputmode="decimal" id="invTaxableInput" placeholder="Enter taxable value" oninput="runManualTaxableCalculations()" style="font-weight:700; background:#ffffff;">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label style="font-size:11px; font-weight:700; color:#475569;">Final Bill Amount (₹) (Editable Direct Total)</label>
+              <input type="text" inputmode="decimal" id="invTotalInput" placeholder="Enter total bill amount" oninput="runManualTotalCalculations()" style="font-weight:800; font-size:15px; color:var(--brand-dark); background:#ffffff; border:2px solid var(--brand-gold);">
+            </div>
           </div>
-          <div style="display:flex; justify-content:space-between; margin-bottom:4px; color:#475569;">
-            <span>GST (18% - CGST 9% + SGST 9%):</span>
-            <strong id="invGST">₹0</strong>
-          </div>
-          <div style="display:flex; justify-content:space-between; font-size:15px; font-weight:800; color:var(--brand-dark); border-top:1px dashed #cbd5e1; padding-top:6px;">
-            <span>Total Invoice Amount:</span>
-            <span id="invTotal">₹0</span>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; color:#475569; padding-top:4px; border-top:1px dashed #e2e8f0;">
+            <span>GST Amount: <strong id="invGST">₹0</strong></span>
+            <span style="font-size:11px; color:#059669; font-weight:600;"><i class="ri-edit-line"></i> You can change either Fee, Taxable, or Final Bill amount manually</span>
           </div>
         </div>
 
@@ -10615,6 +10627,9 @@
               <td><span class="status-badge ${badgeClass}">${inv.status}</span></td>
               <td style="text-align:center;">
                 <div style="display:flex; gap:6px; justify-content:center;">
+                  <button onclick="editInvoice(${inv.id})" title="Edit Bill Amount Manually" class="btn-secondary" style="padding:4px 8px; font-size:11px; color:#1e40af; border-color:#bfdbfe; background:#eff6ff;">
+                    <i class="ri-edit-line"></i> Edit Bill
+                  </button>
                   <button onclick="openPaymentModal(${inv.id})" title="Record Payment" class="btn-primary" style="padding:4px 8px; font-size:11px; background:#059669;">
                     <i class="ri-hand-coin-line"></i> Pay
                   </button>
@@ -10629,7 +10644,38 @@
       }
     }
 
+    function editInvoice(invId) {
+      const inv = DB.invoices.find(i => i.id === invId);
+      if (!inv) return;
+      openInvoiceModal();
+
+      document.getElementById('editInvId').value = inv.id;
+      const select = document.getElementById('invClientSelect');
+      select.value = inv.client_id;
+      document.getElementById('invDate').value = inv.invoice_date || '';
+      document.getElementById('invDueDate').value = inv.due_date || '';
+      document.getElementById('invSanctionAmount').value = inv.sanction_amount || 0;
+      document.getElementById('invFeeAmount').value = inv.taxable_amount || 0;
+      document.getElementById('invOtherCharges').value = 0;
+      document.getElementById('invDiscount').value = 0;
+
+      const applyGst = (inv.gst_amount || 0) > 0;
+      const gstToggle = document.getElementById('invApplyGST');
+      if (gstToggle) gstToggle.checked = applyGst;
+
+      document.getElementById('invTaxableInput').value = inv.taxable_amount || 0;
+      document.getElementById('invTotalInput').value = inv.total_amount || 0;
+      document.getElementById('invGST').textContent = formatINR(inv.gst_amount || 0);
+
+      document.querySelector('#invoiceModal .modal-title h3').textContent = `Edit Tax Invoice (${inv.invoice_no})`;
+      document.querySelector('#invoiceModal button[type="submit"]').textContent = 'Update Bill Amount';
+    }
+
     function openInvoiceModal(prefillClientId) {
+      document.getElementById('editInvId').value = '';
+      document.querySelector('#invoiceModal .modal-title h3').textContent = 'Phase 4: Create Client Service Tax Invoice';
+      document.querySelector('#invoiceModal button[type="submit"]').textContent = 'Generate Tax Invoice';
+
       const select = document.getElementById('invClientSelect');
       select.innerHTML = '<option value="">-- Choose Client --</option>' + DB.clients.map(c => `
         <option value="${c.id}">${c.lead_id} - ${c.client_name} (Sanctioned: ${formatINR(c.sanction_amount || c.loan_amount_required)})</option>
@@ -10641,9 +10687,21 @@
       due.setDate(due.getDate() + 15);
       document.getElementById('invDueDate').value = due.toISOString().split('T')[0];
 
+      const gstToggle = document.getElementById('invApplyGST');
+      if (gstToggle) gstToggle.checked = true;
+
+      document.getElementById('invOtherCharges').value = 0;
+      document.getElementById('invDiscount').value = 0;
+
       if (prefillClientId) {
         select.value = prefillClientId;
         populateInvoiceDefaults();
+      } else {
+        document.getElementById('invSanctionAmount').value = '';
+        document.getElementById('invFeeAmount').value = '';
+        document.getElementById('invTaxableInput').value = '';
+        document.getElementById('invTotalInput').value = '';
+        document.getElementById('invGST').textContent = '₹0';
       }
 
       openModal('invoiceModal');
@@ -10675,58 +10733,123 @@
       runInvoiceCalculations();
     }
 
+    function handleGSTToggle() {
+      runInvoiceCalculations();
+    }
+
+    // Recalculate from Fee + Other - Discount
     function runInvoiceCalculations() {
       const fee = parseCleanNumber(document.getElementById('invFeeAmount').value);
       const other = parseCleanNumber(document.getElementById('invOtherCharges').value);
       const discount = parseCleanNumber(document.getElementById('invDiscount').value);
+      const applyGst = document.getElementById('invApplyGST') ? document.getElementById('invApplyGST').checked : true;
 
       const taxable = Math.max(0, (fee + other) - discount);
-      const gst = Math.round(taxable * 0.18);
+      const gst = applyGst ? Math.round(taxable * 0.18) : 0;
       const total = taxable + gst;
 
-      document.getElementById('invTaxable').textContent = formatINR(taxable);
-      document.getElementById('invGST').textContent = formatINR(gst);
-      document.getElementById('invTotal').textContent = formatINR(total);
+      const taxableInput = document.getElementById('invTaxableInput');
+      const totalInput = document.getElementById('invTotalInput');
+      const gstEl = document.getElementById('invGST');
+
+      if (taxableInput) taxableInput.value = taxable;
+      if (totalInput) totalInput.value = total;
+      if (gstEl) gstEl.textContent = formatINR(gst);
+    }
+
+    // When user manually types Taxable Amount
+    function runManualTaxableCalculations() {
+      const taxable = parseCleanNumber(document.getElementById('invTaxableInput').value);
+      const applyGst = document.getElementById('invApplyGST') ? document.getElementById('invApplyGST').checked : true;
+      const gst = applyGst ? Math.round(taxable * 0.18) : 0;
+      const total = taxable + gst;
+
+      const totalInput = document.getElementById('invTotalInput');
+      const gstEl = document.getElementById('invGST');
+
+      if (totalInput) totalInput.value = total;
+      if (gstEl) gstEl.textContent = formatINR(gst);
+    }
+
+    // When user manually types Final Bill Amount directly
+    function runManualTotalCalculations() {
+      const total = parseCleanNumber(document.getElementById('invTotalInput').value);
+      const applyGst = document.getElementById('invApplyGST') ? document.getElementById('invApplyGST').checked : true;
+
+      let taxable = total;
+      let gst = 0;
+      if (applyGst) {
+        taxable = Math.round(total / 1.18);
+        gst = total - taxable;
+      }
+
+      const taxableInput = document.getElementById('invTaxableInput');
+      const gstEl = document.getElementById('invGST');
+
+      if (taxableInput) taxableInput.value = taxable;
+      if (gstEl) gstEl.textContent = formatINR(gst);
     }
 
     function handleInvoiceSubmit(e) {
       e.preventDefault();
+      const editInvId = document.getElementById('editInvId').value;
       const cid = parseInt(document.getElementById('invClientSelect').value);
       const c = DB.clients.find(c => c.id === cid);
-      if (!c) return;
+      if (!c) {
+        alert('Please select a client.');
+        return;
+      }
 
-      const fee = parseCleanNumber(document.getElementById('invFeeAmount').value);
-      const other = parseCleanNumber(document.getElementById('invOtherCharges').value);
-      const discount = parseCleanNumber(document.getElementById('invDiscount').value);
-      const taxable = Math.max(0, (fee + other) - discount);
-      const gst = Math.round(taxable * 0.18);
-      const total = taxable + gst;
+      const taxable = parseCleanNumber(document.getElementById('invTaxableInput').value);
+      const total = parseCleanNumber(document.getElementById('invTotalInput').value);
+      const applyGst = document.getElementById('invApplyGST') ? document.getElementById('invApplyGST').checked : true;
+      const gst = applyGst ? (total - taxable) : 0;
 
-      const newId = DB.invoices.length > 0 ? Math.max(...DB.invoices.map(i => i.id || 0)) + 1 : 1;
-      const newInv = {
-        id: newId,
-        invoice_no: `INV-2026-${String(newId).padStart(4, '0')}`,
-        invoice_date: document.getElementById('invDate').value,
-        due_date: document.getElementById('invDueDate').value,
-        client_id: c.id,
-        lead_id: c.lead_id,
-        client_name: c.client_name,
-        sanction_amount: parseFloat(document.getElementById('invSanctionAmount').value) || 0,
-        taxable_amount: taxable,
-        gst_amount: gst,
-        total_amount: total,
-        amount_received: 0,
-        balance_due: total,
-        status: "Issued",
-        payments: []
-      };
+      if (editInvId) {
+        // Edit existing invoice
+        const idx = DB.invoices.findIndex(i => String(i.id) === String(editInvId));
+        if (idx !== -1) {
+          const inv = DB.invoices[idx];
+          inv.invoice_date = document.getElementById('invDate').value;
+          inv.due_date = document.getElementById('invDueDate').value;
+          inv.sanction_amount = parseCleanNumber(document.getElementById('invSanctionAmount').value);
+          inv.taxable_amount = taxable;
+          inv.gst_amount = gst;
+          inv.total_amount = total;
+          inv.balance_due = Math.max(0, total - (inv.amount_received || 0));
+          if (inv.balance_due === 0 && inv.total_amount > 0) inv.status = "Paid";
+          else if (inv.amount_received > 0) inv.status = "Partially Paid";
+          else inv.status = "Issued";
+        }
+        alert('Invoice updated successfully with new manual bill amount!');
+      } else {
+        // Create new invoice
+        const newId = DB.invoices.length > 0 ? Math.max(...DB.invoices.map(i => i.id || 0)) + 1 : 1;
+        const newInv = {
+          id: newId,
+          invoice_no: `INV-2026-${String(newId).padStart(4, '0')}`,
+          invoice_date: document.getElementById('invDate').value,
+          due_date: document.getElementById('invDueDate').value,
+          client_id: c.id,
+          lead_id: c.lead_id,
+          client_name: c.client_name,
+          sanction_amount: parseCleanNumber(document.getElementById('invSanctionAmount').value),
+          taxable_amount: taxable,
+          gst_amount: gst,
+          total_amount: total,
+          amount_received: 0,
+          balance_due: total,
+          status: "Issued",
+          payments: []
+        };
+        DB.invoices.unshift(newInv);
+        alert(`Tax Invoice ${newInv.invoice_no} created successfully! Total: ₹${total.toLocaleString('en-IN')}`);
+      }
 
-      DB.invoices.unshift(newInv);
       saveDB(DB);
       closeModal('invoiceModal');
       renderBillingTable();
       updateDashboardKPIs();
-      alert(`Tax Invoice ${newInv.invoice_no} created successfully!`);
     }
 
     function openPaymentModal(invId) {
