@@ -950,6 +950,66 @@
       <!-- ========================================== -->
       <div id="pane-dashboard" class="view-pane active">
         <!-- 15 KPI Cards Grid -->
+                <!-- Live Interactive Dashboard Filter Bar -->
+        <div class="table-card" style="margin-bottom:14px; padding:12px 16px; background:#ffffff; border-left:4px solid var(--brand-primary); box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:8px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <i class="ri-filter-3-line" style="color:var(--brand-primary); font-size:18px;"></i>
+              <span style="font-weight:700; color:#0f172a; font-size:13px; text-transform:uppercase; letter-spacing:0.5px;">Interactive Dashboard Filters</span>
+              <span id="dashFilterBadge" style="display:none; background:#eff6ff; color:#1d4ed8; font-size:11px; font-weight:700; padding:2px 8px; border-radius:12px; border:1px solid #bfdbfe;">Active</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span id="dashMatchingCount" style="font-size:12px; color:#64748b; font-weight:600;">Showing all files</span>
+              <button type="button" onclick="resetDashboardFilters()" class="btn-secondary" style="padding:4px 10px; font-size:11px; height:auto; color:#dc2626; border-color:#fecaca; background:#fff5f5;">
+                <i class="ri-refresh-line"></i> Reset Filters
+              </button>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:10px;">
+            <div class="filter-field" style="margin:0;">
+              <label style="font-size:11px; font-weight:600; color:#475569; margin-bottom:2px;">Inquiry Month</label>
+              <select id="dashFilterMonth" class="filter-select" onchange="applyDashboardFilters()" style="padding:6px 8px; font-size:12px; height:32px;">
+                <option value="ALL">All Months</option>
+              </select>
+            </div>
+            <div class="filter-field" style="margin:0;">
+              <label style="font-size:11px; font-weight:600; color:#475569; margin-bottom:2px;">Processing Stage</label>
+              <select id="dashFilterStage" class="filter-select" onchange="applyDashboardFilters()" style="padding:6px 8px; font-size:12px; height:32px;">
+                <option value="ALL">All Stages</option>
+              </select>
+            </div>
+            <div class="filter-field" style="margin:0;">
+              <label style="font-size:11px; font-weight:600; color:#475569; margin-bottom:2px;">Loan Type</label>
+              <select id="dashFilterLoanType" class="filter-select" onchange="applyDashboardFilters()" style="padding:6px 8px; font-size:12px; height:32px;">
+                <option value="ALL">All Loan Types</option>
+              </select>
+            </div>
+            <div class="filter-field" style="margin:0;">
+              <label style="font-size:11px; font-weight:600; color:#475569; margin-bottom:2px;">Bank / Lender</label>
+              <select id="dashFilterBank" class="filter-select" onchange="applyDashboardFilters()" style="padding:6px 8px; font-size:12px; height:32px;">
+                <option value="ALL">All Banks</option>
+              </select>
+            </div>
+            <div class="filter-field" style="margin:0;">
+              <label style="font-size:11px; font-weight:600; color:#475569; margin-bottom:2px;">City</label>
+              <select id="dashFilterCity" class="filter-select" onchange="applyDashboardFilters()" style="padding:6px 8px; font-size:12px; height:32px;">
+                <option value="ALL">All Cities</option>
+              </select>
+            </div>
+            <div class="filter-field" style="margin:0;">
+              <label style="font-size:11px; font-weight:600; color:#475569; margin-bottom:2px;">Pending With</label>
+              <select id="dashFilterPendingWith" class="filter-select" onchange="applyDashboardFilters()" style="padding:6px 8px; font-size:12px; height:32px;">
+                <option value="ALL">All Entities</option>
+                <option value="Client">Client</option>
+                <option value="Bank">Bank</option>
+                <option value="Internal Team">Internal Team</option>
+                <option value="Legal">Legal</option>
+                <option value="Technical">Technical</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
         <div class="kpi-grid">
           <div class="kpi-card" onclick="filterByStage('ALL')">
             <div>
@@ -1114,6 +1174,48 @@
           <div class="table-card" style="padding:16px;">
             <div class="table-title" style="margin-bottom:10px;"><i class="ri-percent-line"></i> 10. Conversion Rate (Inquiry to Disbursement)</div>
             <div style="height:240px;"><canvas id="chartConversion"></canvas></div>
+          </div>
+        </div>
+
+        
+        <!-- Live Filtered Records Preview Table (Data according to Dashboard) -->
+        <div class="table-card" style="margin-top:16px; padding:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+            <div class="table-title" style="margin-bottom:0;">
+              <i class="ri-table-line" style="color:var(--brand-primary); font-size:18px;"></i>
+              <span id="dashRecordsTableTitle">Active Loan Records According to Dashboard</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <button class="btn-secondary" onclick="viewCurrentDashInClientMaster()" style="padding:6px 12px; font-size:12px; font-weight:700; color:var(--brand-primary); border-color:#cbd5e1;">
+                <i class="ri-external-link-line"></i> Open Filtered in Client Master
+              </button>
+              <button class="btn-secondary" onclick="downloadStageTrackingStyledExcel()" style="padding:6px 12px; font-size:12px; font-weight:700; color:#07162c; border-color:#cbd5e1;">
+                <i class="ri-file-excel-2-line" style="color:#d4af37;"></i> Export Excel
+              </button>
+            </div>
+          </div>
+          <div class="table-responsive" style="max-height:360px; overflow-y:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Lead ID</th>
+                  <th>Inquiry Date</th>
+                  <th>Client Name</th>
+                  <th>Mobile</th>
+                  <th>City</th>
+                  <th>Loan Type</th>
+                  <th>Bank</th>
+                  <th>Required Amt (₹)</th>
+                  <th>Sanction Amt (₹)</th>
+                  <th>Disbursed Amt (₹)</th>
+                  <th>Stage</th>
+                  <th>Pending With</th>
+                </tr>
+              </thead>
+              <tbody id="dashRecordsTableBody">
+                <!-- Dynamically populated according to dashboard filters -->
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -9360,28 +9462,153 @@
     // ==========================================
     // MODULE 1: DASHBOARD
     // ==========================================
+        // Active dashboard filter state
+    let dashFilterState = {
+      month: 'ALL',
+      stage: 'ALL',
+      loanType: 'ALL',
+      bank: 'ALL',
+      city: 'ALL',
+      pendingWith: 'ALL'
+    };
+
+    function populateDashboardFilterDropdowns() {
+      const monthSelect = document.getElementById('dashFilterMonth');
+      const stageSelect = document.getElementById('dashFilterStage');
+      const loanSelect = document.getElementById('dashFilterLoanType');
+      const bankSelect = document.getElementById('dashFilterBank');
+      const citySelect = document.getElementById('dashFilterCity');
+
+      if (!monthSelect) return;
+
+      // Months
+      const months = Array.from(new Set(DB.clients.map(c => (c.inquiry_date || '').slice(0, 7)).filter(Boolean))).sort().reverse();
+      const monthNames = { '01':'Jan', '02':'Feb', '03':'Mar', '04':'Apr', '05':'May', '06':'Jun', '07':'Jul', '08':'Aug', '09':'Sep', '10':'Oct', '11':'Nov', '12':'Dec' };
+      monthSelect.innerHTML = '<option value="ALL">All Months (Jan-Oct 26)</option>' + months.map(m => {
+        const parts = m.split('-');
+        const label = (monthNames[parts[1]] || parts[1]) + ' ' + parts[0];
+        return `<option value="${m}">${label}</option>`;
+      }).join('');
+      monthSelect.value = dashFilterState.month;
+
+      // Stages
+      const stages = Array.from(new Set(DB.clients.map(c => c.current_stage || c.status || 'Inquiry').filter(Boolean))).sort();
+      stageSelect.innerHTML = '<option value="ALL">All Stages</option>' + stages.map(s => `<option value="${s}">${s}</option>`).join('');
+      stageSelect.value = dashFilterState.stage;
+
+      // Loan Types
+      const loans = Array.from(new Set(DB.clients.map(c => c.loan_type || 'Home').filter(Boolean))).sort();
+      loanSelect.innerHTML = '<option value="ALL">All Loan Types</option>' + loans.map(l => `<option value="${l}">${l}</option>`).join('');
+      loanSelect.value = dashFilterState.loanType;
+
+      // Banks
+      const banks = Array.from(new Set(DB.clients.map(c => c.preferred_bank || 'Bank of Baroda').filter(Boolean))).sort();
+      bankSelect.innerHTML = '<option value="ALL">All Banks</option>' + banks.map(b => `<option value="${b}">${b}</option>`).join('');
+      bankSelect.value = dashFilterState.bank;
+
+      // Cities
+      const cities = Array.from(new Set(DB.clients.map(c => c.city).filter(Boolean))).sort();
+      citySelect.innerHTML = '<option value="ALL">All Cities</option>' + cities.map(c => `<option value="${c}">${c}</option>`).join('');
+      citySelect.value = dashFilterState.city;
+
+      const pwSelect = document.getElementById('dashFilterPendingWith');
+      if (pwSelect) pwSelect.value = dashFilterState.pendingWith;
+    }
+
+    function getFilteredDashboardClients() {
+      return DB.clients.filter(c => {
+        if (dashFilterState.month !== 'ALL' && !(c.inquiry_date || '').startsWith(dashFilterState.month)) return false;
+        const curStage = c.current_stage || c.status || 'Inquiry';
+        if (dashFilterState.stage !== 'ALL' && curStage !== dashFilterState.stage) return false;
+        if (dashFilterState.loanType !== 'ALL' && (c.loan_type || 'Home') !== dashFilterState.loanType) return false;
+        if (dashFilterState.bank !== 'ALL' && (c.preferred_bank || '') !== dashFilterState.bank) return false;
+        if (dashFilterState.city !== 'ALL' && (c.city || '') !== dashFilterState.city) return false;
+        if (dashFilterState.pendingWith !== 'ALL' && (c.pending_with || 'Internal Team') !== dashFilterState.pendingWith) return false;
+        return true;
+      });
+    }
+
+    function applyDashboardFilters() {
+      dashFilterState.month = document.getElementById('dashFilterMonth')?.value || 'ALL';
+      dashFilterState.stage = document.getElementById('dashFilterStage')?.value || 'ALL';
+      dashFilterState.loanType = document.getElementById('dashFilterLoanType')?.value || 'ALL';
+      dashFilterState.bank = document.getElementById('dashFilterBank')?.value || 'ALL';
+      dashFilterState.city = document.getElementById('dashFilterCity')?.value || 'ALL';
+      dashFilterState.pendingWith = document.getElementById('dashFilterPendingWith')?.value || 'ALL';
+
+      const hasActive = Object.values(dashFilterState).some(v => v !== 'ALL');
+      const badge = document.getElementById('dashFilterBadge');
+      if (badge) badge.style.display = hasActive ? 'inline-block' : 'none';
+
+      updateDashboardKPIs();
+      initDashboardCharts();
+      renderDashboardRecordsTable();
+    }
+
+    function resetDashboardFilters() {
+      dashFilterState = { month: 'ALL', stage: 'ALL', loanType: 'ALL', bank: 'ALL', city: 'ALL', pendingWith: 'ALL' };
+      populateDashboardFilterDropdowns();
+      const badge = document.getElementById('dashFilterBadge');
+      if (badge) badge.style.display = 'none';
+      updateDashboardKPIs();
+      initDashboardCharts();
+      renderDashboardRecordsTable();
+    }
+
+    function viewCurrentDashInClientMaster() {
+      switchTab('clientMaster');
+      if (dashFilterState.stage !== 'ALL') {
+        const fs = document.getElementById('filterStatus');
+        if (fs) fs.value = dashFilterState.stage;
+      }
+      if (dashFilterState.loanType !== 'ALL') {
+        const fl = document.getElementById('filterLoanType');
+        if (fl) fl.value = dashFilterState.loanType;
+      }
+      if (dashFilterState.city !== 'ALL') {
+        const fc = document.getElementById('filterCity');
+        if (fc) fc.value = dashFilterState.city;
+      }
+      renderClientTable();
+    }
+
     function updateDashboardKPIs() {
+      const filteredClients = getFilteredDashboardClients();
+      const matchingCountEl = document.getElementById('dashMatchingCount');
+      if (matchingCountEl) {
+        matchingCountEl.textContent = `Showing ${filteredClients.length} of ${DB.clients.length} files`;
+      }
+
       const now = new Date();
       const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
-      document.getElementById('kpiDashTotalLeads').textContent = DB.clients.length;
-      document.getElementById('kpiDashNewMonth').textContent = DB.clients.filter(c => (c.inquiry_date || '').startsWith(currentMonth)).length;
-      document.getElementById('kpiDashActive').textContent = DB.clients.filter(c => c.current_stage !== 'Completed' && c.current_stage !== 'Rejected').length;
+      document.getElementById('kpiDashTotalLeads').textContent = filteredClients.length;
+      document.getElementById('kpiDashNewMonth').textContent = filteredClients.filter(c => (c.inquiry_date || '').startsWith(currentMonth)).length;
+      document.getElementById('kpiDashActive').textContent = filteredClients.filter(c => {
+        const s = c.current_stage || c.status || 'Inquiry';
+        return s !== 'Completed' && s !== 'Rejected';
+      }).length;
       
       const assessedClientIds = new Set(DB.assessments.map(a => a.client_id));
-      document.getElementById('kpiDashAssessPending').textContent = DB.clients.filter(c => !assessedClientIds.has(c.id)).length;
-      document.getElementById('kpiDashDocsPending').textContent = DB.clients.filter(c => c.current_stage === 'Docs Pending' || c.status === 'Docs Pending').length;
-      document.getElementById('kpiDashLoggedIn').textContent = DB.clients.filter(c => c.current_stage === 'Logged in Bank').length;
-      document.getElementById('kpiDashSanctionedCount').textContent = DB.clients.filter(c => (c.sanction_amount || 0) > 0 || c.current_stage === 'Sanctioned').length;
-      document.getElementById('kpiDashDisbursedCount').textContent = DB.clients.filter(c => (c.disbursed_amount || 0) > 0 || c.current_stage === 'Disbursed').length;
+      document.getElementById('kpiDashAssessPending').textContent = filteredClients.filter(c => !assessedClientIds.has(c.id)).length;
+      document.getElementById('kpiDashDocsPending').textContent = filteredClients.filter(c => {
+        const s = c.current_stage || c.status || '';
+        return s === 'Docs Pending' || s === 'Documents Pending';
+      }).length;
+      document.getElementById('kpiDashLoggedIn').textContent = filteredClients.filter(c => (c.current_stage || c.status) === 'Logged in Bank').length;
+      document.getElementById('kpiDashSanctionedCount').textContent = filteredClients.filter(c => (c.sanction_amount || 0) > 0 || (c.current_stage || c.status) === 'Sanctioned').length;
+      document.getElementById('kpiDashDisbursedCount').textContent = filteredClients.filter(c => (c.disbursed_amount || 0) > 0 || (c.current_stage || c.status) === 'Disbursed').length;
 
-      const totalReq = DB.clients.reduce((a, b) => a + (Number(b.loan_amount_required) || 0), 0);
-      const totalSanction = DB.clients.reduce((a, b) => a + (Number(b.sanction_amount) || 0), 0);
-      const totalDisb = DB.clients.reduce((a, b) => a + (Number(b.disbursed_amount) || 0), 0);
-      const totalBilled = DB.invoices.reduce((a, b) => a + (Number(b.total_amount) || 0), 0);
-      const totalRec = DB.invoices.reduce((a, b) => a + (Number(b.amount_received) || 0), 0);
-      const totalOut = DB.invoices.reduce((a, b) => a + (Number(b.balance_due) || 0), 0);
-      const overdueBills = DB.invoices.filter(i => isOverdue(i.due_date) && i.balance_due > 0).length;
+      const totalReq = filteredClients.reduce((a, b) => a + (Number(b.loan_amount_required) || 0), 0);
+      const totalSanction = filteredClients.reduce((a, b) => a + (Number(b.sanction_amount) || 0), 0);
+      const totalDisb = filteredClients.reduce((a, b) => a + (Number(b.disbursed_amount) || 0), 0);
+
+      const filteredClientIds = new Set(filteredClients.map(c => c.id));
+      const relevantInvoices = DB.invoices.filter(i => filteredClientIds.has(i.client_id));
+      const totalBilled = relevantInvoices.reduce((a, b) => a + (Number(b.total_amount) || 0), 0);
+      const totalRec = relevantInvoices.reduce((a, b) => a + (Number(b.amount_received) || 0), 0);
+      const totalOut = relevantInvoices.reduce((a, b) => a + (Number(b.balance_due) || 0), 0);
+      const overdueBills = relevantInvoices.filter(i => isOverdue(i.due_date) && i.balance_due > 0).length;
 
       document.getElementById('kpiDashRequestedAmt').textContent = formatINR(totalReq);
       document.getElementById('kpiDashSanctionAmt').textContent = formatINR(totalSanction);
@@ -9392,11 +9619,55 @@
       document.getElementById('kpiDashOverdueBills').textContent = overdueBills;
     }
 
-    function filterByStage(stage) {
-      switchTab('clientMaster');
-      if (stage !== 'ALL' && stage !== 'Active' && stage !== 'New') {
-        document.getElementById('filterStatus').value = stage;
+    function renderDashboardRecordsTable() {
+      const tbody = document.getElementById('dashRecordsTableBody');
+      if (!tbody) return;
+      const filtered = getFilteredDashboardClients();
+      const title = document.getElementById('dashRecordsTableTitle');
+      if (title) {
+        title.innerHTML = `Active Loan Records According to Dashboard <span style="font-size:12px; font-weight:600; color:#64748b;">(${filtered.length} matching files)</span>`;
       }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:24px; color:#94a3b8; font-weight:600;">No records match the selected dashboard filters. Click 'Reset Filters' to see all files.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.slice(0, 50).map(c => {
+        let badgeClass = 'badge-inquiry';
+        const s = (c.current_stage || c.status || '').toLowerCase();
+        if (s.includes('pending') || s.includes('doc')) badgeClass = 'badge-pending';
+        else if (s.includes('sanction')) badgeClass = 'badge-sanction';
+        else if (s.includes('disburs')) badgeClass = 'badge-disbursed';
+
+        return `
+          <tr style="cursor:pointer;" onclick="filterByStage('${c.current_stage || 'Inquiry'}')" title="Click to view in Client Master">
+            <td><strong>${c.lead_id || '--'}</strong></td>
+            <td>${formatDate(c.inquiry_date)}</td>
+            <td style="font-weight:600; color:var(--brand-primary);">${c.client_name || '--'}</td>
+            <td>${c.mobile_number || '--'}</td>
+            <td>${c.city || '--'}</td>
+            <td><span style="font-size:11px; padding:2px 6px; background:#f1f5f9; border-radius:4px;">${c.loan_type || 'Home'}</span></td>
+            <td>${c.preferred_bank || '--'}</td>
+            <td style="font-weight:600;">${formatINR(c.loan_amount_required || 0)}</td>
+            <td style="font-weight:600; color:#047857;">${formatINR(c.sanction_amount || 0)}</td>
+            <td style="font-weight:700; color:#15803d;">${formatINR(c.disbursed_amount || 0)}</td>
+            <td><span class="badge ${badgeClass}">${c.current_stage || c.status || 'Inquiry'}</span></td>
+            <td><span style="font-size:11px; font-weight:600; color:#475569;">${c.pending_with || 'Internal Team'}</span></td>
+          </tr>
+        `;
+      }).join('') + (filtered.length > 50 ? `<tr><td colspan="12" style="text-align:center; padding:10px; background:#f8fafc; font-size:12px; color:#64748b; font-weight:600;">Showing first 50 files. Click 'Open Filtered in Client Master' above to see all ${filtered.length} files with full actions.</td></tr>` : '');
+    }
+
+    function filterByStage(stage) {
+      if (stage !== 'ALL' && stage !== 'Active' && stage !== 'New') {
+        const fs = document.getElementById('filterStatus');
+        if (fs) fs.value = stage;
+      } else {
+        const fs = document.getElementById('filterStatus');
+        if (fs) fs.value = 'ALL';
+      }
+      switchTab('clientMaster');
       renderClientTable();
     }
 
@@ -9407,22 +9678,43 @@
         console.warn('Chart.js is loading or offline. Data tables and tracking are 100% operational.');
         return;
       }
+      const filteredClients = getFilteredDashboardClients();
+      const filteredClientIds = new Set(filteredClients.map(c => c.id));
+
       // 1. Leads by Current Stage
       const stages = ['Inquiry', 'Assessment', 'Docs Pending', 'Ready for Login', 'Logged in Bank', 'Sanctioned', 'Disbursed', 'Completed'];
-      const stageCounts = stages.map(st => DB.clients.filter(c => (c.current_stage || 'Inquiry') === st).length);
+      const stageCounts = stages.map(st => filteredClients.filter(c => (c.current_stage || c.status || 'Inquiry') === st).length);
       renderChart('chartStage', 'bar', {
         labels: stages,
         datasets: [{ label: 'Files in Stage', data: stageCounts, backgroundColor: '#163b6b', borderRadius: 6 }]
+      }, (e, elements) => {
+        if (elements && elements.length > 0) {
+          const clickedStage = stages[elements[0].index];
+          dashFilterState.stage = clickedStage;
+          const ds = document.getElementById('dashFilterStage');
+          if (ds) ds.value = clickedStage;
+          applyDashboardFilters();
+        }
       });
 
       // 2. Monthly Inquiry Trend
-      const months = ['Nov 25', 'Dec 25', 'Jan 26', 'Feb 26', 'Mar 26', 'Apr 26'];
-      const monthlyInquiries = [1, 2, 2, 3, 2, DB.clients.length];
+      const monthMap = {};
+      filteredClients.forEach(c => {
+        const m = (c.inquiry_date || '').slice(0, 7);
+        if (m) monthMap[m] = (monthMap[m] || 0) + 1;
+      });
+      const allActiveMonths = Object.keys(monthMap).sort();
+      const monthDisplayLabels = allActiveMonths.map(m => {
+        const p = m.split('-');
+        const mn = { '01':'Jan', '02':'Feb', '03':'Mar', '04':'Apr', '05':'May', '06':'Jun', '07':'Jul', '08':'Aug', '09':'Sep', '10':'Oct', '11':'Nov', '12':'Dec' };
+        return (mn[p[1]] || p[1]) + ' ' + (p[0] || '').slice(2);
+      });
+      const monthlyInquiries = allActiveMonths.map(m => monthMap[m]);
       renderChart('chartInquiryTrend', 'line', {
-        labels: months,
+        labels: monthDisplayLabels.length ? monthDisplayLabels : ['No Data'],
         datasets: [{
           label: 'Inquiries Received',
-          data: monthlyInquiries,
+          data: monthlyInquiries.length ? monthlyInquiries : [0],
           borderColor: '#163b6b',
           backgroundColor: 'rgba(22, 59, 107, 0.1)',
           fill: true,
@@ -9430,80 +9722,152 @@
           pointRadius: 4,
           pointBackgroundColor: '#d4af37'
         }]
+      }, (e, elements) => {
+        if (elements && elements.length > 0) {
+          const clickedMonth = allActiveMonths[elements[0].index];
+          if (clickedMonth) {
+            dashFilterState.month = clickedMonth;
+            const dm = document.getElementById('dashFilterMonth');
+            if (dm) dm.value = clickedMonth;
+            applyDashboardFilters();
+          }
+        }
       });
 
       // 3. Loan Portfolio by Product Type
-      const loanTypes = ['Home', 'Loan Against Property', 'Personal', 'Business', 'Vehicle'];
-      const loanCounts = loanTypes.map(lt => DB.clients.filter(c => c.loan_type === lt).length);
+      const loanTypeCounts = {};
+      filteredClients.forEach(c => {
+        const lt = c.loan_type || 'Home';
+        loanTypeCounts[lt] = (loanTypeCounts[lt] || 0) + 1;
+      });
+      const loanTypes = Object.keys(loanTypeCounts);
+      const loanCounts = loanTypes.map(lt => loanTypeCounts[lt]);
       renderChart('chartLoanType', 'doughnut', {
-        labels: loanTypes,
-        datasets: [{ data: loanCounts, backgroundColor: ['#163b6b', '#d4af37', '#059669', '#7c3aed', '#dc2626'] }]
+        labels: loanTypes.length ? loanTypes : ['None'],
+        datasets: [{ data: loanCounts.length ? loanCounts : [0], backgroundColor: ['#163b6b', '#d4af37', '#059669', '#7c3aed', '#dc2626', '#0284c7'] }]
+      }, (e, elements) => {
+        if (elements && elements.length > 0) {
+          const clickedType = loanTypes[elements[0].index];
+          if (clickedType) {
+            dashFilterState.loanType = clickedType;
+            const dl = document.getElementById('dashFilterLoanType');
+            if (dl) dl.value = clickedType;
+            applyDashboardFilters();
+          }
+        }
       });
 
       // 4. Bank-wise Loan Applications
-      const banks = ['Bank of Baroda', 'State Bank of India', 'HDFC Bank', 'ICICI Bank', 'Axis Bank'];
-      const bankCounts = banks.map(b => DB.clients.filter(c => (c.preferred_bank || '').includes(b)).length);
+      const bankCountsMap = {};
+      filteredClients.forEach(c => {
+        const b = c.preferred_bank || 'Bank of Baroda';
+        bankCountsMap[b] = (bankCountsMap[b] || 0) + 1;
+      });
+      const topBanks = Object.keys(bankCountsMap).sort((a,b) => bankCountsMap[b] - bankCountsMap[a]).slice(0, 6);
       renderChart('chartBanks', 'bar', {
-        labels: banks,
-        datasets: [{ label: 'Applications', data: bankCounts, backgroundColor: '#d4af37', borderRadius: 6 }]
+        labels: topBanks.length ? topBanks : ['None'],
+        datasets: [{ label: 'Applications', data: topBanks.map(b => bankCountsMap[b]), backgroundColor: '#d4af37', borderRadius: 6 }]
+      }, (e, elements) => {
+        if (elements && elements.length > 0) {
+          const clickedBank = topBanks[elements[0].index];
+          if (clickedBank) {
+            dashFilterState.bank = clickedBank;
+            const db = document.getElementById('dashFilterBank');
+            if (db) db.value = clickedBank;
+            applyDashboardFilters();
+          }
+        }
       });
 
       // 5. Sanction vs. Disbursement Volume
-      const totalSanction = DB.clients.reduce((a, b) => a + (b.sanction_amount || 0), 0);
-      const totalDisb = DB.clients.reduce((a, b) => a + (b.disbursed_amount || 0), 0);
+      const totalSanction = filteredClients.reduce((a, b) => a + (Number(b.sanction_amount) || 0), 0);
+      const totalDisb = filteredClients.reduce((a, b) => a + (Number(b.disbursed_amount) || 0), 0);
       renderChart('chartSanctionVsDisb', 'bar', {
         labels: ['Sanction Amount (₹)', 'Disbursed Amount (₹)'],
         datasets: [{ label: 'Total Volume (₹)', data: [totalSanction, totalDisb], backgroundColor: ['#047857', '#15803d'], borderRadius: 6 }]
       });
 
       // 6. Monthly Loan Disbursement Amount
-      const disbMonths = ['Nov 25', 'Dec 25', 'Jan 26', 'Feb 26', 'Mar 26', 'Apr 26'];
-      const monthlyDisbAmounts = [0, 1500000, 2500000, 4000000, 3200000, totalDisb];
+      const disbMap = {};
+      filteredClients.forEach(c => {
+        if ((c.disbursed_amount || 0) > 0) {
+          const m = (c.disbursement_date || c.inquiry_date || '').slice(0, 7);
+          if (m) disbMap[m] = (disbMap[m] || 0) + (Number(c.disbursed_amount) || 0);
+        }
+      });
+      const activeDisbMonths = Object.keys(disbMap).sort();
+      const disbLabels = activeDisbMonths.map(m => {
+        const p = m.split('-');
+        const mn = { '01':'Jan', '02':'Feb', '03':'Mar', '04':'Apr', '05':'May', '06':'Jun', '07':'Jul', '08':'Aug', '09':'Sep', '10':'Oct', '11':'Nov', '12':'Dec' };
+        return (mn[p[1]] || p[1]) + ' ' + (p[0] || '').slice(2);
+      });
       renderChart('chartMonthlyDisb', 'bar', {
-        labels: disbMonths,
-        datasets: [{ label: 'Disbursement (₹)', data: monthlyDisbAmounts, backgroundColor: '#059669', borderRadius: 6 }]
+        labels: disbLabels.length ? disbLabels : ['No Disbursements'],
+        datasets: [{ label: 'Disbursement (₹)', data: activeDisbMonths.map(m => disbMap[m]), backgroundColor: '#059669', borderRadius: 6 }]
       });
 
       // 7. Billing vs. Collections Realization
-      const billed = DB.invoices.reduce((a, b) => a + (b.total_amount || 0), 0);
-      const collected = DB.invoices.reduce((a, b) => a + (b.amount_received || 0), 0);
+      const relevantInvoices = DB.invoices.filter(i => filteredClientIds.has(i.client_id));
+      const billed = relevantInvoices.reduce((a, b) => a + (Number(b.total_amount) || 0), 0);
+      const collected = relevantInvoices.reduce((a, b) => a + (Number(b.amount_received) || 0), 0);
       renderChart('chartBilling', 'bar', {
         labels: ['Invoiced Fees (₹)', 'Collected Fees (₹)'],
         datasets: [{ label: 'Revenue (₹)', data: [billed, collected], backgroundColor: ['#163b6b', '#059669'], borderRadius: 6 }]
       });
 
       // 8. Outstanding Amount by Client
-      const debtors = DB.invoices.filter(i => i.balance_due > 0).slice(0, 5);
+      const debtors = relevantInvoices.filter(i => (i.balance_due || 0) > 0).slice(0, 5);
       renderChart('chartOutstandingClient', 'bar', {
         labels: debtors.length ? debtors.map(d => d.client_name) : ['All Cleared'],
         datasets: [{ label: 'Outstanding (₹)', data: debtors.length ? debtors.map(d => d.balance_due) : [0], backgroundColor: '#dc2626', borderRadius: 6 }]
       });
 
       // 9. Files Pending with
-      const pendingEntities = ['Client', 'Bank', 'Legal', 'Technical', 'Internal Team'];
-      const pendingCounts = pendingEntities.map(pe => DB.clients.filter(c => (c.pending_with || 'Internal Team') === pe).length);
+      const peCounts = {};
+      filteredClients.forEach(c => {
+        const pe = c.pending_with || 'Internal Team';
+        peCounts[pe] = (peCounts[pe] || 0) + 1;
+      });
+      const pendingEntities = Object.keys(peCounts);
       renderChart('chartPendingWith', 'pie', {
-        labels: pendingEntities,
-        datasets: [{ data: pendingCounts, backgroundColor: ['#f59e0b', '#3b82f6', '#8b5cf6', '#10b981', '#64748b'] }]
+        labels: pendingEntities.length ? pendingEntities : ['None'],
+        datasets: [{ data: pendingEntities.map(p => peCounts[p]), backgroundColor: ['#f59e0b', '#3b82f6', '#8b5cf6', '#10b981', '#64748b'] }]
+      }, (e, elements) => {
+        if (elements && elements.length > 0) {
+          const clickedEntity = pendingEntities[elements[0].index];
+          if (clickedEntity) {
+            dashFilterState.pendingWith = clickedEntity;
+            const dp = document.getElementById('dashFilterPendingWith');
+            if (dp) dp.value = clickedEntity;
+            applyDashboardFilters();
+          }
+        }
       });
 
       // 10. Conversion Rate
-      const totalInq = DB.clients.length || 1;
-      const totalDisbFiles = DB.clients.filter(c => (c.disbursed_amount || 0) > 0 || c.current_stage === 'Disbursed').length;
+      const totalInq = filteredClients.length || 1;
+      const totalDisbFiles = filteredClients.filter(c => (c.disbursed_amount || 0) > 0 || (c.current_stage || c.status) === 'Disbursed').length;
       renderChart('chartConversion', 'doughnut', {
         labels: ['Disbursed Converted', 'In Progress / Other'],
         datasets: [{ data: [totalDisbFiles, Math.max(0, totalInq - totalDisbFiles)], backgroundColor: ['#15803d', '#e2e8f0'] }]
       });
     }
 
-    function renderChart(id, type, data) {
+    function renderChart(id, type, data, onClickHandler) {
       const el = document.getElementById(id);
       if (!el) return;
       if (charts[id]) charts[id].destroy();
+      const options = {
+        responsive: true,
+        maintainAspectRatio: false
+      };
+      if (onClickHandler) {
+        options.onClick = onClickHandler;
+      }
       charts[id] = new Chart(el, {
         type: type,
         data: data,
-        options: { responsive: true, maintainAspectRatio: false }
+        options: options
       });
     }
 
@@ -11638,6 +12002,8 @@
     }
 
     // Start in Dashboard
+    populateDashboardFilterDropdowns();
+    renderDashboardRecordsTable();
     updateDashboardKPIs();
     initDashboardCharts();
   
