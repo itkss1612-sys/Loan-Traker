@@ -1828,15 +1828,15 @@
             </div>
             <div class="form-group">
               <label>Monthly Income (₹) *</label>
-              <input type="number" id="formIncome" required step="5000" min="0" placeholder="Enter monthly net income">
+              <input type="text" inputmode="decimal" id="formIncome" placeholder="e.g. 50000 or 50,000">
             </div>
             <div class="form-group">
               <label>Existing Monthly EMI (₹)</label>
-              <input type="number" id="formEMI" step="1000" min="0" placeholder="Existing EMIs (or 0)">
+              <input type="text" inputmode="decimal" id="formEMI" placeholder="Existing EMIs (or 0)">
             </div>
             <div class="form-group">
               <label>CIBIL Score</label>
-              <input type="number" id="formCibil" min="300" max="900" placeholder="e.g. 750">
+              <input type="text" inputmode="numeric" id="formCibil" placeholder="e.g. 750">
             </div>
             <div class="form-group">
               <label>Education</label>
@@ -1875,7 +1875,7 @@
             </div>
             <div class="form-group">
               <label>Loan Amount Required (₹) *</label>
-              <input type="number" id="formLoanAmount" required step="50000" min="10000" placeholder="Enter loan amount required">
+              <input type="text" inputmode="decimal" id="formLoanAmount" placeholder="e.g. 2500000 or 25,00,000">
             </div>
             <div class="form-group">
               <label>Preferred Bank</label>
@@ -1930,15 +1930,15 @@
           </div>
           <div class="form-group">
             <label>Monthly Gross Income (₹)</label>
-            <input type="number" id="calcIncome" required oninput="runAssessCalculations()">
+            <input type="text" inputmode="decimal" id="calcIncome" oninput="runAssessCalculations()">
           </div>
           <div class="form-group">
             <label>Existing Monthly EMI (₹)</label>
-            <input type="number" id="calcExistingEMI" value="0" oninput="runAssessCalculations()">
+            <input type="text" inputmode="decimal" id="calcExistingEMI" value="0" oninput="runAssessCalculations()">
           </div>
           <div class="form-group">
             <label>Loan Amount Required (₹)</label>
-            <input type="number" id="calcLoanReq" required oninput="runAssessCalculations()">
+            <input type="text" inputmode="decimal" id="calcLoanReq" oninput="runAssessCalculations()">
           </div>
           <div class="form-group">
             <label>Tenure (Years)</label>
@@ -1950,7 +1950,7 @@
           </div>
           <div class="form-group">
             <label>Property Value (₹, if applicable)</label>
-            <input type="number" id="calcPropVal" value="0" oninput="runAssessCalculations()">
+            <input type="text" inputmode="decimal" id="calcPropVal" value="0" oninput="runAssessCalculations()">
           </div>
         </div>
 
@@ -2056,7 +2056,7 @@
           </div>
           <div class="form-group">
             <label>Sanction Amount (₹)</label>
-            <input type="number" id="progSanctionAmount" placeholder="₹ approved by bank">
+            <input type="text" inputmode="decimal" id="progSanctionAmount" placeholder="₹ approved by bank">
           </div>
           <div class="form-group">
             <label>Disbursement Date</label>
@@ -2064,7 +2064,7 @@
           </div>
           <div class="form-group">
             <label>Disbursement Amount (₹)</label>
-            <input type="number" id="progDisbAmount" placeholder="₹ disbursed">
+            <input type="text" inputmode="decimal" id="progDisbAmount" placeholder="₹ disbursed">
           </div>
         </div>
 
@@ -2131,15 +2131,15 @@
           </div>
           <div class="form-group">
             <label>Commission % or Service Fee (₹)</label>
-            <input type="number" id="invFeeAmount" required step="100" placeholder="e.g. 5000" oninput="runInvoiceCalculations()">
+            <input type="text" inputmode="decimal" id="invFeeAmount" placeholder="e.g. 5000" oninput="runInvoiceCalculations()">
           </div>
           <div class="form-group">
             <label>Processing Charges / Other (₹)</label>
-            <input type="number" id="invOtherCharges" value="0" oninput="runInvoiceCalculations()">
+            <input type="text" inputmode="decimal" id="invOtherCharges" value="0" oninput="runInvoiceCalculations()">
           </div>
           <div class="form-group">
             <label>Discount (₹)</label>
-            <input type="number" id="invDiscount" value="0" oninput="runInvoiceCalculations()">
+            <input type="text" inputmode="decimal" id="invDiscount" value="0" oninput="runInvoiceCalculations()">
           </div>
         </div>
 
@@ -2187,7 +2187,7 @@
         </div>
         <div class="form-group">
           <label>Amount Received (₹) *</label>
-          <input type="number" id="payAmount" required step="100" min="1">
+          <input type="text" inputmode="decimal" id="payAmount" placeholder="Enter amount received">
         </div>
         <div class="form-group">
           <label>Payment Mode</label>
@@ -9348,6 +9348,15 @@
     let DB = loadDB();
 
     // Formatting Helpers
+        // Helper: Cleanly parse any user-entered number (handles commas, currency signs, spaces, text)
+    function parseCleanNumber(val) {
+      if (val === null || val === undefined) return 0;
+      if (typeof val === 'number') return isNaN(val) ? 0 : val;
+      const cleaned = String(val).replace(/[^0-9.-]/g, '');
+      const parsed = parseFloat(cleaned);
+      return isNaN(parsed) ? 0 : parsed;
+    }
+
     function formatINR(val) {
       if (!val || isNaN(val)) return '₹0';
       const num = Number(val);
@@ -10001,14 +10010,14 @@
         address: document.getElementById('formAddress').value.trim(),
         applicant_type: document.getElementById('formApplicantType').value,
         occupation: document.getElementById('formOccupation').value.trim(),
-        monthly_income: parseFloat(document.getElementById('formIncome').value) || 0,
-        existing_monthly_emi: parseFloat(document.getElementById('formEMI').value) || 0,
-        cibil_score: parseInt(document.getElementById('formCibil').value) || null,
+        monthly_income: parseCleanNumber(document.getElementById('formIncome').value),
+        existing_monthly_emi: parseCleanNumber(document.getElementById('formEMI').value),
+        cibil_score: parseInt(parseCleanNumber(document.getElementById('formCibil').value)) || null,
         education: document.getElementById('formEducation').value.trim(),
         inquiry_date: document.getElementById('formInquiryDate').value,
         inquiry_source: document.getElementById('formSource').value,
         loan_type: document.getElementById('formLoanType').value,
-        loan_amount_required: parseFloat(document.getElementById('formLoanAmount').value) || 0,
+        loan_amount_required: parseCleanNumber(document.getElementById('formLoanAmount').value),
         preferred_bank: document.getElementById('formPreferredBank').value.trim(),
         assigned_staff_name: document.getElementById('formStaff').value.trim(),
         next_followup_date: document.getElementById('formFollowupDate').value || null,
@@ -10130,9 +10139,9 @@
     }
 
     function runAssessCalculations() {
-      const income = parseFloat(document.getElementById('calcIncome').value) || 0;
-      const existingEMI = parseFloat(document.getElementById('calcExistingEMI').value) || 0;
-      const loanReq = parseFloat(document.getElementById('calcLoanReq').value) || 0;
+      const income = parseCleanNumber(document.getElementById('calcIncome').value);
+      const existingEMI = parseCleanNumber(document.getElementById('calcExistingEMI').value);
+      const loanReq = parseCleanNumber(document.getElementById('calcLoanReq').value);
       const tenureYears = parseFloat(document.getElementById('calcTenureYears').value) || 20;
       const roi = parseFloat(document.getElementById('calcROI').value) || 8.5;
 
@@ -10487,9 +10496,9 @@
       c.pending_with = document.getElementById('progPendingWith').value;
       c.bank_app_no = document.getElementById('progBankAppNo').value.trim();
       c.sanction_date = document.getElementById('progSanctionDate').value || null;
-      c.sanction_amount = parseFloat(document.getElementById('progSanctionAmount').value) || 0;
+      c.sanction_amount = parseCleanNumber(document.getElementById('progSanctionAmount').value);
       c.disbursement_date = document.getElementById('progDisbDate').value || null;
-      c.disbursed_amount = parseFloat(document.getElementById('progDisbAmount').value) || 0;
+      c.disbursed_amount = parseCleanNumber(document.getElementById('progDisbAmount').value);
       c.pending_reason = document.getElementById('progPendingReason').value.trim();
       c.remarks = document.getElementById('progRemarks').value.trim();
 
@@ -10667,9 +10676,9 @@
     }
 
     function runInvoiceCalculations() {
-      const fee = parseFloat(document.getElementById('invFeeAmount').value) || 0;
-      const other = parseFloat(document.getElementById('invOtherCharges').value) || 0;
-      const discount = parseFloat(document.getElementById('invDiscount').value) || 0;
+      const fee = parseCleanNumber(document.getElementById('invFeeAmount').value);
+      const other = parseCleanNumber(document.getElementById('invOtherCharges').value);
+      const discount = parseCleanNumber(document.getElementById('invDiscount').value);
 
       const taxable = Math.max(0, (fee + other) - discount);
       const gst = Math.round(taxable * 0.18);
@@ -10686,9 +10695,9 @@
       const c = DB.clients.find(c => c.id === cid);
       if (!c) return;
 
-      const fee = parseFloat(document.getElementById('invFeeAmount').value) || 0;
-      const other = parseFloat(document.getElementById('invOtherCharges').value) || 0;
-      const discount = parseFloat(document.getElementById('invDiscount').value) || 0;
+      const fee = parseCleanNumber(document.getElementById('invFeeAmount').value);
+      const other = parseCleanNumber(document.getElementById('invOtherCharges').value);
+      const discount = parseCleanNumber(document.getElementById('invDiscount').value);
       const taxable = Math.max(0, (fee + other) - discount);
       const gst = Math.round(taxable * 0.18);
       const total = taxable + gst;
@@ -10736,7 +10745,7 @@
       const inv = DB.invoices.find(i => i.id === invId);
       if (!inv) return;
 
-      const amt = parseFloat(document.getElementById('payAmount').value) || 0;
+      const amt = parseCleanNumber(document.getElementById('payAmount').value);
       const mode = document.getElementById('payMode').value;
       const ref = document.getElementById('payRef').value.trim();
 
