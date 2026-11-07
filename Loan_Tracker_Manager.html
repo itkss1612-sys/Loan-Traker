@@ -1788,16 +1788,16 @@
           <div class="form-section-title"><i class="ri-user-line"></i> 1. Client Identity & Contact Details</div>
           <div class="form-grid">
             <div class="form-group" style="grid-column: span 2;">
-              <label>Client Full Name *</label>
-              <input type="text" id="formName" required placeholder="Enter client full name">
+              <label>Client Full Name</label>
+              <input type="text" id="formName" placeholder="Enter client full name">
             </div>
             <div class="form-group">
-              <label>Mobile Number *</label>
-              <input type="tel" id="formMobile" required maxlength="15" placeholder="Enter 10-digit mobile number">
+              <label>Mobile Number</label>
+              <input type="tel" id="formMobile" maxlength="15" placeholder="Enter 10-digit mobile number">
             </div>
             <div class="form-group">
-              <label>City *</label>
-              <input type="text" id="formCity" required placeholder="Enter city (e.g. Navsari)">
+              <label>City</label>
+              <input type="text" id="formCity" placeholder="Enter city (e.g. Navsari)">
             </div>
             <div class="form-group">
               <label>State</label>
@@ -1827,7 +1827,7 @@
               <input type="text" id="formOccupation" placeholder="e.g. Business / Service">
             </div>
             <div class="form-group">
-              <label>Monthly Income (₹) *</label>
+              <label>Monthly Income (₹)</label>
               <input type="text" inputmode="decimal" id="formIncome" placeholder="e.g. 50000 or 50,000">
             </div>
             <div class="form-group">
@@ -1849,8 +1849,8 @@
           <div class="form-section-title"><i class="ri-money-dollar-circle-line"></i> 3. Loan Requirements</div>
           <div class="form-grid">
             <div class="form-group">
-              <label>Inquiry Date *</label>
-              <input type="date" id="formInquiryDate" required>
+              <label>Inquiry Date</label>
+              <input type="date" id="formInquiryDate">
             </div>
             <div class="form-group">
               <label>Inquiry Source</label>
@@ -1863,8 +1863,8 @@
               </select>
             </div>
             <div class="form-group">
-              <label>Loan Type *</label>
-              <select id="formLoanType" required>
+              <label>Loan Type</label>
+              <select id="formLoanType">
                 <option value="Home">Home Loan</option>
                 <option value="Loan Against Property">Loan Against Property</option>
                 <option value="Personal">Personal Loan</option>
@@ -1874,7 +1874,7 @@
               </select>
             </div>
             <div class="form-group">
-              <label>Loan Amount Required (₹) *</label>
+              <label>Loan Amount Required (₹)</label>
               <input type="text" inputmode="decimal" id="formLoanAmount" placeholder="e.g. 2500000 or 25,00,000">
             </div>
             <div class="form-group">
@@ -9617,7 +9617,7 @@
         return s === 'Docs Pending' || s === 'Documents Pending';
       }).length;
       document.getElementById('kpiDashLoggedIn').textContent = filteredClients.filter(c => (c.current_stage || c.status) === 'Logged in Bank').length;
-      document.getElementById('kpiDashSanctionedCount').textContent = filteredClients.filter(c => (c.sanction_amount || 0) > 0 || (c.current_stage || c.status) === 'Sanctioned').length;
+      document.getElementById('kpiDashSanctionedCount').textContent = filteredClients.filter(c => (c.current_stage || c.status) === 'Sanctioned').length;
       document.getElementById('kpiDashDisbursedCount').textContent = filteredClients.filter(c => (c.disbursed_amount || 0) > 0 || (c.current_stage || c.status) === 'Disbursed').length;
 
       const totalReq = filteredClients.reduce((a, b) => a + (Number(b.loan_amount_required) || 0), 0);
@@ -10014,26 +10014,27 @@
     function handleClientSubmit(e) {
       e.preventDefault();
       const editId = document.getElementById('editId').value;
+      const nowIso = new Date().toISOString().split('T')[0];
       const clientData = {
-        client_name: document.getElementById('formName').value.trim(),
-        mobile_number: document.getElementById('formMobile').value.trim(),
-        city: document.getElementById('formCity').value.trim(),
-        state: document.getElementById('formState').value.trim(),
-        address: document.getElementById('formAddress').value.trim(),
-        applicant_type: document.getElementById('formApplicantType').value,
-        occupation: document.getElementById('formOccupation').value.trim(),
+        client_name: document.getElementById('formName').value.trim() || 'Unnamed Client',
+        mobile_number: document.getElementById('formMobile').value.trim() || '--',
+        city: document.getElementById('formCity').value.trim() || '--',
+        state: document.getElementById('formState').value.trim() || '',
+        address: document.getElementById('formAddress').value.trim() || '',
+        applicant_type: document.getElementById('formApplicantType').value || 'Other',
+        occupation: document.getElementById('formOccupation').value.trim() || '',
         monthly_income: parseCleanNumber(document.getElementById('formIncome').value),
         existing_monthly_emi: parseCleanNumber(document.getElementById('formEMI').value),
         cibil_score: parseInt(parseCleanNumber(document.getElementById('formCibil').value)) || null,
-        education: document.getElementById('formEducation').value.trim(),
-        inquiry_date: document.getElementById('formInquiryDate').value,
-        inquiry_source: document.getElementById('formSource').value,
-        loan_type: document.getElementById('formLoanType').value,
+        education: document.getElementById('formEducation').value.trim() || '',
+        inquiry_date: document.getElementById('formInquiryDate').value || nowIso,
+        inquiry_source: document.getElementById('formSource').value || 'Direct',
+        loan_type: document.getElementById('formLoanType').value || 'Home',
         loan_amount_required: parseCleanNumber(document.getElementById('formLoanAmount').value),
-        preferred_bank: document.getElementById('formPreferredBank').value.trim(),
-        assigned_staff_name: document.getElementById('formStaff').value.trim(),
+        preferred_bank: document.getElementById('formPreferredBank').value.trim() || '',
+        assigned_staff_name: document.getElementById('formStaff').value.trim() || 'RM',
         next_followup_date: document.getElementById('formFollowupDate').value || null,
-        remarks: document.getElementById('formRemarks').value.trim()
+        remarks: document.getElementById('formRemarks').value.trim() || ''
       };
 
       if (editId) {
